@@ -15,7 +15,7 @@ export default class LoginAuth extends React.Component {
   _bootstrapAsync = async () => {
     const userToken = await AsyncStorage.getItem('user_id');
     console.log(userToken);
-    this.props.navigation.navigate(userToken ? 'Home' : 'Onboarding');
+    this.props.navigation.replace(userToken ? 'Home' : 'Onboarding');
   };
 
   // Render any loading content that you like here

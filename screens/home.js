@@ -9,30 +9,27 @@ import {
     Image,
     ImageBackground,
     FlatList,
-    Dimensions,
-    TouchableOpacity,
-    TouchableHighlight,
+    BackHandler,
     Pressable,
     LogBox
 } from 'react-native';
 
-import { Card, CardItem } from 'native-base';
-
+import { Card, CardItem, Thumbnail } from 'native-base';
 import { SearchBar } from 'react-native-elements'
-
 import Modal, { BottomModal, ModalContent, SlideAnimation, ModalButton } from 'react-native-modals'
-
 import Icon from 'react-native-vector-icons/FontAwesome';
-
 import {widthPercentageToDP as wp, heightPercentageToDP as hp} from 'react-native-responsive-screen';
-
 import SplashScreen from 'react-native-splash-screen'
+import axios from 'axios';
+import AsyncStorage from '@react-native-community/async-storage';
 
 export default class Home extends Component {
     constructor(props) {
         super(props);
         this.state = {
             featureDictionary: [],
+            alcDict: [],
+            nonAlcDict: [],
             reloadKey: 0,
             blogData: false,
             addsData: false,
@@ -41,20 +38,91 @@ export default class Home extends Component {
             nalcVisible: false,
         }
         this.arrayholder = [];
+        this.testBool = false;
     }     
 
-    componentDidMount() {
-        var testData = [
-            { "id": 1, "title": "Cocktail 1", "thumbnail": "https://guardian.ng/wp-content/uploads/2018/06/Various-cocktails.-Photo-Getty-Images.jpg" },
-            { "id": 2, "title": "Cocktail 2", "thumbnail": "https://www.standard.co.uk/s3fs-public/thumbnails/image/2016/09/30/10/cocktails.jpg" },
-            { "id": 3, "title": "Cocktail 3", "thumbnail": "https://upload.wikimedia.org/wikipedia/commons/9/94/Sidecar-cocktail.jpg" }
-        ]
-
-        this.setState({ featureDictionary: testData });
+    async componentDidMount() {
         LogBox.ignoreLogs(['Animated: `useNativeDriver`']);
         LogBox.ignoreLogs(['Animated.event now requires a second argument for options'])
         setTimeout(() => SplashScreen.hide(), 1000);
+        this.handleRequest();
     }
+
+    async handleRequest() {
+        axios.defaults.headers.post['Content-Type'] = 'text/html';
+        const instance = axios.create({
+          baseURL: 'https://jadookijhappi.com/pubgrub/apis/',
+          timeout: 5000,
+          headers: {'Content-Type': 'text/html'}
+        });
+        console.log("lolol");
+        await instance
+          .post('featured_cocktails/')
+          .then(response => {
+            this.setState({ featureDictionary : response.data });
+            
+          })
+          .catch(error => {
+            console.log(error);
+            if (error.response) {
+              console.log("error data" + error.response.data);
+              console.log("error status" + error.response.status);
+              console.log("error header" + error.response.headers);
+            } else if (error.request) {
+                console.log("error request" + error.request);
+              this.refs.toast.show('Network Error');
+            } else {
+                console.log('Error', error.message);
+            }
+            console.log(error.config);
+          });
+          const payload = new FormData();
+        payload.append("category_id", "1")
+        await instance
+          .post('subcategories/', payload)
+          .then(response => {
+            this.setState({ alcDict : response.data });
+            
+            console.log(this.state.alcDict);
+          })
+          .catch(error => {
+            console.log(error);
+            if (error.response) {
+              console.log("error data" + error.response.data);
+              console.log("error status" + error.response.status);
+              console.log("error header" + error.response.headers);
+            } else if (error.request) {
+                console.log("error request" + error.request);
+            //   this.refs.toast.show('Network Error');
+            } else {
+                console.log('Error', error.message);
+            }
+            console.log(error.config);
+          });
+          const npayload = new FormData();
+        npayload.append("category_id", "2")
+        await instance
+          .post('subcategories/', npayload)
+          .then(response => {
+            this.setState({ nonAlcDict : response.data });
+            
+            console.log(response.data);
+          })
+          .catch(error => {
+            console.log(error);
+            if (error.response) {
+              console.log("error data" + error.response.data);
+              console.log("error status" + error.response.status);
+              console.log("error header" + error.response.headers);
+            } else if (error.request) {
+                console.log("error request" + error.request);
+              this.refs.toast.show('Network Error');
+            } else {
+                console.log('Error', error.message);
+            }
+            console.log(error.config);
+          });
+      }
 
     SearchFilterFunction(text) {
         const newData = this.arrayholder.filter(function (item) {
@@ -70,24 +138,52 @@ export default class Home extends Component {
     renderFeaturedCards = (data) => {
         return (
             <View style={{ paddingHorizontal: 6, paddingBottom: 4 }} >
-                <Pressable onPress={() => this.renderRecipeView(data.item.id)}>
+                <Pressable onPress={() => this.renderRecipeView(data.item.Cocktail.id)}>
                     <Card style={{ marginVertical: hp("3%"), marginHorizontal: wp("2%"), borderRadius: 25 }}>
-                        <Image source={{ uri: data.item.thumbnail }}
+                        <Image source={{ uri: data.item.Cocktail.image }}
                             style={{
                                 resizeMode: "cover",
                                 height: hp('20%'), width: wp('39%'), borderRadius: 25
                             }} />
                     </Card>
                     <Text style={styles.content}>
-                        {data.item.title}
+                        {data.item.Cocktail.name}
                     </Text>
                 </Pressable>
             </View>
         )
     }
 
+    renderCatList = (data) => {
+        let newBool = this.testBool;
+        return (
+            <SafeAreaView style={{alignItems: "center", width: wp('30%'), marginVertical: '4%'}}>
+            {
+                this.testBool ? <View style={{ backgroundColor:'#f68e56', borderRadius: 150}} >
+                <Pressable onPress={() => { this.renderSublistingsView(data.item.Subcategory.id) }}>
+                    <Image source={{ uri: data.item.Subcategory.image }} style={{borderColor:"red", width: wp('12%'), resizeMode:"center", height: wp("12%")}} />
+                </Pressable>
+            </View> : 
+            <View style={{ backgroundColor:'#a3d39c', borderRadius: 150}} >
+            <Pressable onPress={() => { this.renderSublistingsView(data.item.Subcategory.id) }}>
+                <Image source={{ uri: data.item.Subcategory.image }} style={{borderColor:"red", width: wp('12%'), resizeMode:"center", height: wp("12%")}} />
+            </Pressable>
+        </View>
+            }
+                <Text>{data.item.Subcategory.name}</Text>
+                {this.testBool = !newBool}
+            </SafeAreaView>
+        )
+    }
+
     renderRecipeView(data) {
-        this.props.navigation.navigate('SubListing', { RecipeData: data })
+        this.props.navigation.navigate('Recipe', { cocktail_id : data })
+    }
+
+    renderSublistingsView(data) {
+        this.setState({ alcVisible: false })
+        this.setState({ nalcVisible: false })
+        this.props.navigation.navigate('SubListing', { SubcategoryData: data })
     }
 
     render() {
@@ -115,27 +211,27 @@ export default class Home extends Component {
                 <View style={{ width: "95%", alignSelf: "center" }}>
                     <Pressable onPress={() => { this.setState({ alcVisible: true }) }}>
                         <Card style={{ borderTopLeftRadius: 25, borderTopRightRadius: 25, marginTop: 16 }}>
-                            <ImageBackground source={require('../res/wisky2_new.png')}
+                            <ImageBackground source={require('../res/alcoholicHome.jpeg')}
                                 style={{
-                                    height: hp('35%'), width: wp('95%'), borderTopLeftRadius: 25,
+                                    height: hp('35%'), width: wp('95%'), borderTopLeftRadius: 25, resizeMode: "contain",
                                     borderTopRightRadius: 25, alignSelf: "center", overflow: "hidden", textAlignVertical: "center", justifyContent: "center"
                                 }}>
                                 <Text style={{ alignSelf: "center", fontSize: 24, fontWeight: "700", color: "white" }}>
-                                    Alcoholic
+                                    Wanks
                         </Text>
                         <Icon name="chevron-down" color="#ffffff" size={25} style={{alignSelf: "center"}}></Icon>
                             </ImageBackground>
                         </Card>
                     </Pressable>
                     <Pressable onPress={() => { this.setState({ nalcVisible: true }) }} style={{ position: "absolute", top: hp('24%'), alignSelf: "center" }}>
-                        <Card style={{ borderTopLeftRadius: 25, borderTopRightRadius: 25, alignSelf: "center" }}>
-                            <ImageBackground source={require('../res/wisky2_new.png')}
+                        <Card style={{ borderTopLeftRadius: 25, borderTopRightRadius: 25, alignSelf: "center", textAlignVertical: "flex-start" }}>
+                            <ImageBackground source={require('../res/nonalcoholicHome.jpeg')}
                                 style={{
-                                    height: hp('35%'), width: wp('95%'), borderTopLeftRadius: 25,
+                                    height: hp('35%'), width: wp('95%'), borderTopLeftRadius: 25, resizeMode: "contain",
                                     borderTopRightRadius: 25, alignSelf: "center", overflow: "hidden", flex:1, justifyContent: "center"
                                 }}>
                                 <Text style={{ alignSelf: "center", fontSize: 24, fontWeight: "700", color: "white" }}>
-                                    Non-Alcoholic
+                                    Virgin Drinks
                         </Text>
                         <Icon name="chevron-down" color="#ffffff" size={25} style={{alignSelf: "center"}}></Icon>
                             </ImageBackground>
@@ -143,33 +239,56 @@ export default class Home extends Component {
                     </Pressable>
                 </View>
                 <BottomModal visible={this.state.alcVisible} onTouchOutside={() => { this.setState({ alcVisible: false }) }}
+                    onHardwareBackPress={() => {
+                        console.log('onHardwareBackPress');
+                        this.setState({ alcVisible: false });
+                        return true;
+                      }}
                     modalAnimation={new SlideAnimation({
                         slideFrom: 'bottom',
                     })}
                     swipeDirection={['up', 'down']} // can be string or an array
-                    swipeThreshold={200} // default 100
+                    swipeThreshold={100} // default 100
                     onSwipeOut={(event) => {
                         this.setState({ alcVisible: false });
-                    }}>
+                    }} 
+                    height={hp('45%')} style={{alignItems:'center'}}
+                    footer={null} >
                     <ModalContent>
-                        <Text>
-                            lmao lmao Alcoholic Modal
-                        </Text>
+                    <FlatList
+                    showsVerticalScrollIndicator={true}
+                    data={this.state.alcDict}
+                    extraData={this.state}
+                    keyExtractor={(article, id) => id.toString()}
+                    renderItem={data => this.renderCatList(data)}
+                    numColumns={3}
+                />
                     </ModalContent>
                 </BottomModal>
                 <BottomModal visible={this.state.nalcVisible} onTouchOutside={() => { this.setState({ nalcVisible: false }) }}
+                    onHardwareBackPress={() => {
+                        console.log('onHardwareBackPress');
+                        this.setState({ nalcVisible: false });
+                        return true;
+                      }}
                     modalAnimation={new SlideAnimation({
                         slideFrom: 'bottom',
                     })}
                     swipeDirection={['up', 'down']} // can be string or an array
-                    swipeThreshold={200} // default 100
+                    swipeThreshold={100} // default 100
                     onSwipeOut={(event) => {
                         this.setState({ nalcVisible: false });
-                    }}>
+                    }}
+                    height={hp('45%')} style={{alignItems:'center'}}>
                     <ModalContent>
-                        <Text>
-                            lmao lmao Non-Alcoholic Modal
-                        </Text>
+                    <FlatList
+                    showsVerticalScrollIndicator={true}
+                    data={this.state.nonAlcDict}
+                    extraData={this.state}
+                    keyExtractor={(article, id) => id.toString()}
+                    renderItem={data => this.renderCatList(data)}
+                    numColumns={3}
+                />
                     </ModalContent>
                 </BottomModal>
             </SafeAreaView>
@@ -193,6 +312,7 @@ const styles = StyleSheet.create({
     },
     content: {
         width: "90%",
-        alignSelf: "center"
+        alignSelf: "center",
+        color: '#b7afaf'
     }
 });

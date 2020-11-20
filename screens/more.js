@@ -1,25 +1,15 @@
 import React, { Component } from 'react';
 import {
+    Text,
+    View,
     SafeAreaView,
     StyleSheet,
-    ScrollView,
-    View,
-    Text,
-    StatusBar,
-    Image,
     ImageBackground,
-    FlatList,
-    Dimensions,
-    TouchableOpacity,
-    TouchableHighlight,
-    Pressable
 } from 'react-native';
-
-import { Card, CardItem } from 'native-base';
-
 import { SearchBar } from 'react-native-elements'
-
-import Modal, { BottomModal, ModalContent, SlideAnimation, ModalButton } from 'react-native-modals'
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { Card, CardItem } from 'native-base';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 export default class MoreView extends Component {
     constructor(props) {
@@ -37,44 +27,9 @@ export default class MoreView extends Component {
     }
 
     componentDidMount() {
-        var testData = [
-            { "id": 1, "title": "Cocktail 1", "thumbnail": "https://guardian.ng/wp-content/uploads/2018/06/Various-cocktails.-Photo-Getty-Images.jpg" },
-            { "id": 2, "title": "Cocktail 2", "thumbnail": "https://www.standard.co.uk/s3fs-public/thumbnails/image/2016/09/30/10/cocktails.jpg" },
-            { "id": 3, "title": "Cocktail 3", "thumbnail": "https://upload.wikimedia.org/wikipedia/commons/9/94/Sidecar-cocktail.jpg" }
-        ]
 
-        this.setState({ featureDictionary: testData });
     }
 
-    SearchFilterFunction(text) {
-        const newData = this.arrayholder.filter(function (item) {
-            const itemData = item.title ? item.title.toUpperCase() :
-                ''.toUpperCase();
-            const textData = text.toUpperCase(); return itemData.indexOf(textData) > -1;
-        });
-        this.setState({
-            dataSource: newData, search: text,
-        });
-    }
-
-    renderFeaturedCards = (data) => {
-        return (
-            <View style={{ width: Dimensions.get('window').width / 3, paddingHorizontal: 6, paddingBottom: 4 }} >
-                <TouchableOpacity onPress={() => this.renderRecipeView(data.item.id)}>
-                    <Card style={{ marginVertical: "3%", marginHorizontal: "2%", borderRadius: 25 }}>
-                        <Image source={{ uri: data.item.thumbnail }}
-                            style={{
-                                resizeMode: "cover",
-                                height: Dimensions.get('window').height * 0.17, width: Dimensions.get('window').width * 0.3, borderRadius: 25
-                            }} />
-                    </Card>
-                    <Text style={styles.content}>
-                        {data.item.title}
-                    </Text>
-                </TouchableOpacity>
-            </View>
-        )
-    }
 
     renderRecipeView(data) {
         this.props.navigation.navigate('RecipeView', { RecipeData: data })
@@ -82,10 +37,35 @@ export default class MoreView extends Component {
 
     render() {
         return (
-            <SafeAreaView>
-                <Text>
-                    More page
-                </Text>
+            <SafeAreaView style={{flex:1}}>
+                <SearchBar round lightTheme
+                    searchIcon style={{ width: 0.5 }}
+                    onChangeText={text => this.SearchFilterFunction(text)} onClear={text => this.SearchFilterFunction('')} placeholder="Search..." value={this.state.search}
+                />
+                <ImageBackground source={require('../res/More.png')} style={{width:'100%', height: '100%'}} resizeMode="cover" >
+                    <View style={{marginRight:'4%'}}>
+                    <View style={{height: hp("8%"), marginTop:'7%', marginHorizontal: '4%', flexDirection:"row", alignItems:'center'}}>
+                        <Icon name="beer-outline" size={33} color='white'/>
+                        <Text style={styles.content}> Make Your Drink </Text>
+                        <Icon name="chevron-forward-outline" size={33} color='white' style={{ marginRight: '4%'}} />
+                    </View>
+                    <View style={{height: hp("8%"), marginHorizontal: '4%', flexDirection:"row", alignItems:'center'}}>
+                        <Icon name="document-text-outline" size={33} color='white'/>
+                        <Text style={styles.content}> Terms of Use </Text>
+                        <Icon name="chevron-forward-outline" size={33} color='white' style={{ marginRight: '4%'}} />
+                    </View>
+                    <View style={{height: hp("8%"), marginHorizontal: '4%', flexDirection:"row", alignItems:'center'}}>
+                        <Icon name="shield-checkmark-outline" size={33} color='white'/>
+                        <Text style={styles.content}> Privacy Policy </Text>
+                        <Icon name="chevron-forward-outline" size={33} color='white' style={{ marginRight: '4%'}} />
+                    </View>
+                    <View style={{height: hp("8%"), marginHorizontal: '4%', flexDirection:"row", alignItems:'center'}}>
+                        <Icon name="flask-outline" size={33} color='white'/>
+                        <Text style={styles.content}> Know Your Poison </Text>
+                        <Icon name="chevron-forward-outline" size={33} color='white' style={{ marginRight: '4%'}} />
+                    </View>
+                    </View>
+                </ImageBackground>
             </SafeAreaView>
         );
     }
@@ -106,7 +86,11 @@ const styles = StyleSheet.create({
         paddingVertical: 7,
     },
     content: {
-        width: "90%",
-        alignSelf: "center"
+        width: "82%",
+        alignSelf: "center",
+        color: 'white',
+        fontSize: 18,
+        marginLeft: '4%',
+        fontWeight: '100'
     }
 });

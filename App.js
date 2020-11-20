@@ -5,6 +5,7 @@ import RecipeView from "./screens/recipe"
 import ListingsView from "./screens/listings"
 import SubListingsView from "./screens/sublistings"
 import MoreView from "./screens/more"
+import ExploreView from "./screens/explore"
 import FavouritesView from "./screens/favourites"
 import OnboardingView from './screens/onboarding'
 import LoginAuth from './screens/LoginAuth'
@@ -27,7 +28,7 @@ function HomeStackScreen() {
             iconName = focused
               ? 'home'
               : 'home-outline';
-          } else if (route.name === 'Listings') {
+          } else if (route.name === 'My Bar') {
             iconName = 'wine-sharp';
           } else if (route.name === 'Explore') {
             iconName = 'compass';
@@ -46,12 +47,34 @@ function HomeStackScreen() {
         activeTintColor: 'tomato',
         inactiveTintColor: 'gray',
       }}>
-        <Tab.Screen name="Explore" component={MoreView} />
-        <Tab.Screen name="Favourites" component={FavouritesView} />
-        <Tab.Screen name="Home" component={Home} />
-        <Tab.Screen name="Listings" component={ListingsStackScreen} />
-        <Tab.Screen name="More" component={MoreView} />
+        <Tab.Screen name="Explore" component={ExploreView} />
+        <Tab.Screen name="Favourites" component={favStackScreen} options= {{unmountOnBlur: true}}/>
+        <Tab.Screen name="Home" component={featuredStackScreen} options= {{unmountOnBlur: true}} />
+        <Tab.Screen name="My Bar" component={ListingsStackScreen} />
+        <Tab.Screen name="More" component={MoreView} options= {{tabBarVisible: false}}/>
       </Tab.Navigator>
+  );
+}
+
+const featuredStack = createStackNavigator();
+
+function featuredStackScreen() {
+  return (
+    <featuredStack.Navigator>
+      <featuredStack.Screen name="Home" component={Home} options={{headerShown: false}}/>
+      <featuredStack.Screen name="Recipe" component={RecipeView}/>
+    </featuredStack.Navigator>
+  );
+}
+
+const favStack = createStackNavigator();
+
+function favStackScreen() {
+  return (
+    <favStack.Navigator>
+      <favStack.Screen name="Favourites" component={FavouritesView} options={{headerShown: false}}/>
+      <favStack.Screen name="Recipe" component={RecipeView}/>
+    </favStack.Navigator>
   );
 }
 
@@ -61,7 +84,7 @@ function ListingsStackScreen() {
   return (
     <ListingsStack.Navigator>
       <ListingsStack.Screen name="Listings" component={ListingsView} options={{headerShown: false}}/>
-      <ListingsStack.Screen name="Recipe" component={RecipeView} options={{headerShown: false}}/>
+      <ListingsStack.Screen name="Recipe" component={RecipeView}/>
       <ListingsStack.Screen name="SubListing" component={SubListingsView} options={{headerShown: false}}/>
     </ListingsStack.Navigator>
   );
@@ -74,6 +97,8 @@ export default function App() {
       <HomeStack.Screen name="LoginAuth" component={LoginAuth} options={{headerShown: false}} />
       <HomeStack.Screen name="Onboarding" component={OnboardingView} options={{headerShown: false}} />
       <HomeStack.Screen name="Home" component={HomeStackScreen} options={{headerShown: false}} />
+      <HomeStack.Screen name="Recipe" component={RecipeView} options={{headerShown: false}}/>
+      <HomeStack.Screen name="SubListing" component={SubListingsView} options={{headerShown: false}}/>
     </HomeStack.Navigator>
     </NavigationContainer>
   );

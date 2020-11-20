@@ -44,14 +44,14 @@ export default class ListingsView extends Component {
 
     async handleRequest() {
         const instance = axios.create({
-          baseURL: 'http://jadookijhappi.com/pubgrub/apis/',
+          baseURL: 'https://jadookijhappi.com/pubgrub/apis/',
           timeout: 5000,
         });
         console.log("lolol");
         const payload = new FormData();
         payload.append("category_id", "1")
         await instance
-          .post('subcategories', payload)
+          .post('subcategories/', payload)
           .then(response => {
             this.setState({ listingDictionary : response.data });
             
@@ -80,7 +80,8 @@ export default class ListingsView extends Component {
                 <Card style={{ width: wp('95%'), alignSelf: "center", alignContent: "center" }}>
                     {console.log(data.item.Subcategory.name)}
                     <CardItem>
-                        <Thumbnail round large source={{ uri: data.item.Subcategory.image }} />
+                        {/* <Thumbnail round large source={{ uri: data.item.Subcategory.image }} /> */}
+                        <Image source={require('../res/rum.jpg')} style={{borderRadius:20, width: wp('18%'), height: wp('23%')}} /> 
                         <View style={{ marginLeft: "5%", width: wp('57%') }}>
                             <Text style={{ fontWeight: "700", fontSize: 22, textTransform: "capitalize" }}>
                                 {console.log(data.item.Subcategory.id)}
@@ -95,14 +96,7 @@ export default class ListingsView extends Component {
                                 {/*Add in the strength if we recieve it from API*/}
               </Text>
                         </View>
-                        <Pressable android_disableSound onPress={() => { data.item.fav = !data.item.fav; this.setState({ fav: !this.state.fav }) }}>
-                            <View style={{ marginHorizontal: null, width: wp('7%') }}>
-                                {
-                                    data.item.fav ? <Image source={require('../res/doFav.png')} style={{ width: wp('7%'), resizeMode: "contain" }} /> :
-                                        <Image source={require('../res/share.png')} style={{ width: wp('7%'), resizeMode: "contain" }} />
-                                }
-                            </View>
-                        </Pressable>
+                        
                     </CardItem>
                 </Card>
             </Pressable>

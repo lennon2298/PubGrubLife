@@ -1,12 +1,12 @@
 import React, { Component } from 'react';
 import { Pressable, View, Alert, ImageBackground, Text, Image, StatusBar, StyleSheet } from 'react-native';
-import ViewPager from '@react-native-community/viewpager';
 import AsyncStorage from '@react-native-community/async-storage';
 import RNExitApp from 'react-native-exit-app';
 import AppIntroSlider from 'react-native-app-intro-slider';
 import axios from 'axios';
 import SplashScreen from 'react-native-splash-screen';
 import Icon from 'react-native-vector-icons/Ionicons';
+import {widthPercentageToDP as wp, heightPercentageToDP as hp} from 'react-native-responsive-screen';
 
 export default class OnboardingView extends Component {
   constructor(props) {
@@ -14,17 +14,17 @@ export default class OnboardingView extends Component {
     this.state = {
       onboardingDictionary: [],
     }
-    this.createAlert = this.createAlert.bind(this);
+    // this.createAlert = this.createAlert.bind(this);
   }
 
   componentDidMount() {
-    setTimeout(() => SplashScreen.hide(), 1000);
+    this.createAlert();
     this.handleRequest();
 }
 
   async handleRequest() {
     const instance = axios.create({
-      baseURL: 'http://jadookijhappi.com/pubgrub/apis/',
+      baseURL: 'https://jadookijhappi.com/pubgrub/apis/',
       timeout: 5000,
     });
     await instance
@@ -60,7 +60,7 @@ export default class OnboardingView extends Component {
           onPress: () => RNExitApp.exitApp(),
           style: "cancel"
         },
-        { text: "OK", onPress: () => { AsyncStorage.setItem('user_id', 'true') } }
+        { text: "OK", onPress: () => { AsyncStorage.setItem('user_id', 'true'); SplashScreen.hide() } }
       ],
       { cancelable: false }
     );
@@ -68,12 +68,12 @@ export default class OnboardingView extends Component {
   _renderItem = (item, key) => {
     return (
       <ImageBackground style={{width: '100%', height: '100%'}}source={require('../res/OnboardingNew.jpg')}>
-        <View style={{height: '50%'}}>
+        <View style={{height: hp('60%')}}>
           {console.log(item)}
-          <Image source={{ uri: item.item.Onboarding.image}} style={{width: '100%', height: "100%", margin: '15%', resizeMode:'stretch', alignSelf: "center"}}/>
+          <Image source={{ uri: item.item.Onboarding.image}} style={{width: '90%', height: "100%", margin: '5%',marginTop: '10%', resizeMode:'stretch', borderRadius:25}}/>
         </View>
-        <View style={{flex: 1, height: '45%'}}>
-        <Text style={{marginHorizontal: "5%", marginTop: '30%', fontSize: 16}}>{item.item.Onboarding.description}</Text>
+        <View style={{flex: 1, height: hp('25%')}}>
+        <Text style={{marginHorizontal: "5%", marginTop: '25%', fontSize: 16}}>{item.item.Onboarding.description}</Text>
         </View>
       </ImageBackground>
     );
@@ -86,7 +86,8 @@ export default class OnboardingView extends Component {
       <View style={styles.buttonCircle}>
         <Icon
           name="md-arrow-forward"
-          color="rgba(0, 0, 0, 1)"
+          backgroundColor="#f7941d"
+          color="#FFFFFF"
           size={24}
         />
       </View>
@@ -97,7 +98,8 @@ export default class OnboardingView extends Component {
       <View style={styles.buttonCircle}>
         <Icon
           name="md-checkmark"
-          color="rgba(0, 0, 0, 1)"
+          backgroundColor="#f7941d"
+          color="#FFFFFF"
           size={24}
         />
       </View>
@@ -107,7 +109,7 @@ export default class OnboardingView extends Component {
   _onDone = () => {
     // User finished the introduction. Show real app through
     // navigation or simply by controlling state
-    this.props.navigation.navigate('Home')
+    this.props.navigation.replace('Home')
   }
 
   render() {
@@ -122,6 +124,7 @@ export default class OnboardingView extends Component {
           renderDoneButton={this._renderDoneButton}
           renderNextButton={this._renderNextButton}
           onDone={this._onDone}
+          dotStyle={{backgroundColor: 'rgba(0, 0, 0, 0)'}}
         />
       </View>
     );
@@ -132,7 +135,7 @@ const styles = StyleSheet.create({
   buttonCircle: {
     width: 40,
     height: 40,
-    backgroundColor: "rgba(96, 51, 14, 1)",
+    backgroundColor: "#f7941d",
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
