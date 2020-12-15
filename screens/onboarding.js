@@ -53,7 +53,7 @@ export default class OnboardingView extends Component {
   createAlert = () =>
     Alert.alert(
       "Welcome!",
-      "You must be 25 or older to enter this App.",
+      "You must be of the legal drinking age to proceed further.",
       [
         {
           text: "Cancel",
@@ -114,7 +114,7 @@ export default class OnboardingView extends Component {
 
   render() {
     return (
-      <View style={{ flex: 1 }}>
+      <View style={{ flex: 1, backgroundColor: 'white' }}>
         <StatusBar />
         {this.createAlert()}
         <AppIntroSlider

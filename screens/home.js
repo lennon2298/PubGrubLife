@@ -22,12 +22,14 @@ import {widthPercentageToDP as wp, heightPercentageToDP as hp} from 'react-nativ
 import SplashScreen from 'react-native-splash-screen'
 import axios from 'axios';
 import AsyncStorage from '@react-native-community/async-storage';
+import Toast, {DURATION} from 'react-native-easy-toast'
 
 export default class Home extends Component {
     constructor(props) {
         super(props);
         this.state = {
             featureDictionary: [],
+            listingsDictionary: [],
             alcDict: [],
             nonAlcDict: [],
             reloadKey: 0,
@@ -47,6 +49,38 @@ export default class Home extends Component {
         setTimeout(() => SplashScreen.hide(), 1000);
         this.handleRequest();
     }
+
+    async handleSearch() {
+        const instance = axios.create({
+          baseURL: 'https://jadookijhappi.com/pubgrub/apis/',
+          timeout: 5000,
+        });
+        console.log("lolol");
+        var keywords = "/search/keyword:" + this.state.search
+        
+        console.log(keywords);
+            await instance
+          .get(keywords)
+          .then(response => {
+            this.setState({ listingsDictionary : response.data });
+            console.log(this.state.listingsDictionary);
+            this.renderListingsView(this.state.listingsDictionary);
+          })
+          .catch(error => {
+            console.log(error);
+            if (error.response) {
+              console.log("error data" + error.response.data);
+              console.log("error status" + error.response.status);
+              console.log("error header" + error.response.headers);
+            } else if (error.request) {
+                console.log("error request" + error.request);
+              this.refs.toast.show('Network Error');
+            } else {
+                console.log('Error', error.message);
+            }
+            console.log(error.config);
+          });
+        }
 
     async handleRequest() {
         axios.defaults.headers.post['Content-Type'] = 'text/html';
@@ -124,6 +158,16 @@ export default class Home extends Component {
           });
       }
 
+    renderListingsView(data) {
+        this.setState({search: ""});
+        if(this.state.listingsDictionary.length > 0) {
+            this.props.navigation.navigate('NewListing', { NewListingData : data })
+        }
+        else {
+            this.refs.toast.show("No Results Found.", 3000);
+        }
+    }
+
     SearchFilterFunction(text) {
         const newData = this.arrayholder.filter(function (item) {
             const itemData = item.title ? item.title.toUpperCase() :
@@ -188,9 +232,9 @@ export default class Home extends Component {
 
     render() {
         return (
-            <SafeAreaView>
+            <SafeAreaView style={{backgroundColor:'white'}}>
                 <SearchBar round lightTheme
-                    searchIcon style={{ width: 0.5 }}
+                    searchIcon style={{ width: 0.5 }} onSubmitEditing={() => this.handleSearch()}
                     onChangeText={text => this.SearchFilterFunction(text)} onClear={text => this.SearchFilterFunction('')} placeholder="Search..." value={this.state.search}
                 />
                 <View style={styles.content}>
@@ -210,16 +254,20 @@ export default class Home extends Component {
                 </View>
                 <View style={{ width: "95%", alignSelf: "center" }}>
                     <Pressable onPress={() => { this.setState({ alcVisible: true }) }}>
-                        <Card style={{ borderTopLeftRadius: 25, borderTopRightRadius: 25, marginTop: 16 }}>
+                        <Card style={{ borderTopLeftRadius: 25, borderTopRightRadius: 25, marginTop: 16, height: hp('75%'), width: wp('95%') }}>
                             <ImageBackground source={require('../res/alcoholicHome.jpeg')}
                                 style={{
-                                    height: hp('35%'), width: wp('95%'), borderTopLeftRadius: 25, resizeMode: "contain",
-                                    borderTopRightRadius: 25, alignSelf: "center", overflow: "hidden", textAlignVertical: "center", justifyContent: "center"
+                                    height: hp('35%'), width: wp('95%'), borderTopLeftRadius: 25, resizeMode: "cover",
+                                    borderTopRightRadius: 25, alignSelf: "center", overflow: "hidden", textAlignVertical: "center"
                                 }}>
-                                <Text style={{ alignSelf: "center", fontSize: 24, fontWeight: "700", color: "white" }}>
-                                    Wanks
-                        </Text>
-                        <Icon name="chevron-down" color="#ffffff" size={25} style={{alignSelf: "center"}}></Icon>
+                                <View style={{width: wp('80%'), height:hp('12%'), alignItems: 'center', alignSelf: 'center'}}>
+                                    <Text style={{ alignSelf: "stretch", fontSize: 26, fontWeight: "700", color: "white", marginTop: hp('3%'), textAlign:'center' }}>
+                                        Wanks
+                                    </Text>
+                                </View>
+                                <View style={{height:hp('12%'), justifyContent: 'flex-end'}}>
+                        <Icon name="chevron-down" color="#ffffff" size={25} style={{alignSelf: "center", marginBottom: hp('3%')}}></Icon>
+                        </View>
                             </ImageBackground>
                         </Card>
                     </Pressable>
@@ -228,12 +276,16 @@ export default class Home extends Component {
                             <ImageBackground source={require('../res/nonalcoholicHome.jpeg')}
                                 style={{
                                     height: hp('35%'), width: wp('95%'), borderTopLeftRadius: 25, resizeMode: "contain",
-                                    borderTopRightRadius: 25, alignSelf: "center", overflow: "hidden", flex:1, justifyContent: "center"
+                                    borderTopRightRadius: 25, alignSelf: "center", overflow: "hidden", flex:1
                                 }}>
-                                <Text style={{ alignSelf: "center", fontSize: 24, fontWeight: "700", color: "white" }}>
-                                    Virgin Drinks
-                        </Text>
-                        <Icon name="chevron-down" color="#ffffff" size={25} style={{alignSelf: "center"}}></Icon>
+                                <View style={{width: wp('80%'), height:hp('12%'), alignItems: 'center', alignSelf: 'center', }}>
+                                    <Text style={{alignSelf: "stretch", fontSize: 26, fontWeight: "700", color: "white", marginTop: hp('3%'), textAlign:'center' }}>
+                                        Virgin Drinks
+                                    </Text>
+                                </View>
+                                <View style={{position: "absolute", top: hp('12%'), height:hp('12%'), alignItems: 'center', justifyContent: 'flex-end', width: wp('95%') }}>
+                                <Icon name="chevron-down" color="#ffffff" size={25} style={{alignSelf: "center", marginBottom: hp('2%')}}></Icon>
+                                </View>
                             </ImageBackground>
                         </Card>
                     </Pressable>
@@ -291,6 +343,7 @@ export default class Home extends Component {
                 />
                     </ModalContent>
                 </BottomModal>
+                <Toast ref="toast" style={{opacity: 0.71,borderRadius: 20,padding: 10}} positionValue={140} fadeInDuration={1500} fadeOutDuration={2500}/>
             </SafeAreaView>
         );
     }

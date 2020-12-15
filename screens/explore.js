@@ -112,7 +112,7 @@ export default class ExploreView extends Component {
 
     render() {
         return (
-            <SafeAreaView>
+            <SafeAreaView style={{backgroundColor:'white'}}>
                 <FlatList
                     showsVerticalScrollIndicator={true}
                     data={this.state.listingDictionary}

@@ -37,35 +37,32 @@ export default class MoreView extends Component {
 
     render() {
         return (
-            <SafeAreaView style={{flex:1}}>
+            <SafeAreaView style={{flex:1, backgroundColor: 'white'}}>
                 <SearchBar round lightTheme
                     searchIcon style={{ width: 0.5 }}
                     onChangeText={text => this.SearchFilterFunction(text)} onClear={text => this.SearchFilterFunction('')} placeholder="Search..." value={this.state.search}
                 />
-                <ImageBackground source={require('../res/More.png')} style={{width:'100%', height: '100%'}} resizeMode="cover" >
-                    <View style={{marginRight:'4%'}}>
+                <View style={{width:'100%', height: '100%', alignItems: 'center'}}>
+                <ImageBackground source={require('../res/More.png')} style={{width: '98%', height: '100%', marginLeft: wp('2%')}} resizeMode="cover" >
+                    <View style={{marginRight: wp('4%')}}>
                     <View style={{height: hp("8%"), marginTop:'7%', marginHorizontal: '4%', flexDirection:"row", alignItems:'center'}}>
-                        <Icon name="beer-outline" size={33} color='white'/>
-                        <Text style={styles.content}> Make Your Drink </Text>
+                        <Icon name="beer-outline" size={25} color='white'/>
+                        <Text style={styles.content}> Alcohol Review </Text>
                         <Icon name="chevron-forward-outline" size={33} color='white' style={{ marginRight: '4%'}} />
                     </View>
                     <View style={{height: hp("8%"), marginHorizontal: '4%', flexDirection:"row", alignItems:'center'}}>
-                        <Icon name="document-text-outline" size={33} color='white'/>
+                        <Icon name="document-text-outline" size={25} color='white'/>
                         <Text style={styles.content}> Terms of Use </Text>
                         <Icon name="chevron-forward-outline" size={33} color='white' style={{ marginRight: '4%'}} />
                     </View>
                     <View style={{height: hp("8%"), marginHorizontal: '4%', flexDirection:"row", alignItems:'center'}}>
-                        <Icon name="shield-checkmark-outline" size={33} color='white'/>
+                        <Icon name="shield-checkmark-outline" size={25} color='white'/>
                         <Text style={styles.content}> Privacy Policy </Text>
-                        <Icon name="chevron-forward-outline" size={33} color='white' style={{ marginRight: '4%'}} />
-                    </View>
-                    <View style={{height: hp("8%"), marginHorizontal: '4%', flexDirection:"row", alignItems:'center'}}>
-                        <Icon name="flask-outline" size={33} color='white'/>
-                        <Text style={styles.content}> Know Your Poison </Text>
                         <Icon name="chevron-forward-outline" size={33} color='white' style={{ marginRight: '4%'}} />
                     </View>
                     </View>
                 </ImageBackground>
+                </View>
             </SafeAreaView>
         );
     }
@@ -89,7 +86,7 @@ const styles = StyleSheet.create({
         width: "82%",
         alignSelf: "center",
         color: 'white',
-        fontSize: 18,
+        fontSize: 16,
         marginLeft: '4%',
         fontWeight: '100'
     }

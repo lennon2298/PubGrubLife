@@ -109,7 +109,7 @@ export default class ListingsView extends Component {
 
     render() {
         return (
-            <SafeAreaView>
+            <SafeAreaView style={{backgroundColor:'white'}}>
                 <SearchBar round lightTheme
                     searchIcon style={{ width: 0.5 }}
                     onChangeText={text => this.SearchFilterFunction(text)} onClear={text => this.SearchFilterFunction('')} placeholder="Search..." value={this.state.search}

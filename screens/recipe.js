@@ -74,15 +74,12 @@ export default class RecipeView extends Component {
 
     renderLists = (data) => {
         return (
-                <ListItem>
-                    
             <View flexDirection='row'>
                 <Text style={{marginRight:wp('2%')}}>{'\u2022'}</Text>
                 <Text style={styles.info}>
                     {data.item}
                 </Text>
             </View>
-                </ListItem>
         )
     }
 
@@ -98,9 +95,9 @@ export default class RecipeView extends Component {
                 <SafeAreaView style={{flex:1, backgroundColor: '#FFFFFF'}} >
                     {/* {console.log(newData)} */}
                     <ScrollView keyboardShouldPersistTaps='handled' contentContainerStyle={{ flexGrow: 1 }}>
+                    <Image source={{ uri: newData.Cocktail.image }} style={styles.mainImage} />
                     <View style={styles.body}>
                         <View style={styles.content}>
-                            <Image source={{ uri: newData.Cocktail.image }} style={styles.mainImage} />
                             <Text style={styles.title}>
                                 {newData.Cocktail.name}
 
@@ -174,7 +171,6 @@ export default class RecipeView extends Component {
                                 Ingredients
                             </Text>
                             <View style={{ marginVertical: '3%' }}>
-                            <UnorderedList type="circle" alignBullets="center">
                             <FlatList
                                 nestedScrollEnabled={true}
                                 snapToAlignment={"center"}
@@ -183,7 +179,6 @@ export default class RecipeView extends Component {
                                 keyExtractor={(article, id) => id.toString()}
                                 renderItem={data => this.renderLists(data)}
                             />
-                            </UnorderedList>
                             </View>
                             <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: '4%' }}>
                                 <View style={{ flex: 1, height: 1, backgroundColor: 'grey' }} />
@@ -192,7 +187,6 @@ export default class RecipeView extends Component {
                                 Steps for Preparation
                             </Text>
                             <View style={{ marginVertical: '3%' }}>
-                            <UnorderedList>
                             <FlatList
                                 nestedScrollEnabled={true}
                                 snapToAlignment={"center"}
@@ -201,7 +195,6 @@ export default class RecipeView extends Component {
                                 keyExtractor={(article, id) => id.toString()}
                                 renderItem={data => this.renderLists(data)}
                             />
-                            </UnorderedList>
                             </View>
                         </View>
                     </View>
@@ -239,7 +232,7 @@ const styles = StyleSheet.create({
         marginTop: "6%"
     },
     content: {
-        width: "90%",
+        width: "95%",
         alignSelf: "center"
     },
     info: {
@@ -248,8 +241,7 @@ const styles = StyleSheet.create({
         flexShrink: 1,
     },
     mainImage: {
-        marginTop: "5%",
-        height: hp("30%"),
+        height: hp("33%"),
         width: "100%",
         resizeMode: "cover"
     }

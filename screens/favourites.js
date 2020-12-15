@@ -121,7 +121,7 @@ export default class SubListingsView extends Component {
 
     render() {
         return (
-            <SafeAreaView>
+            <SafeAreaView style={{backgroundColor:'white', flex: 1}}>
                 <SearchBar round lightTheme
                     searchIcon style={{ width: 0.5 }}
                     onChangeText={text => this.SearchFilterFunction(text)} onClear={text => this.SearchFilterFunction('')} placeholder="Search..." value={this.state.search}

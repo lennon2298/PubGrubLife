@@ -17,7 +17,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import axios from 'axios';
 import AsyncStorage from '@react-native-community/async-storage';
 
-export default class SubListingsView extends Component {
+export default class NewListingsView extends Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -38,7 +38,8 @@ export default class SubListingsView extends Component {
     }
 
     componentDidMount() {
-        this.handleRequest();
+        this.setState({sublistingDictionary : this.props.route.params.NewListingData});
+        //this.handleRequest();
         this._bootstrapAsync();
     }
 
@@ -60,37 +61,37 @@ export default class SubListingsView extends Component {
         });
     }
 
-    async handleRequest() {
-        const instance = axios.create({
-          baseURL: 'https://jadookijhappi.com/pubgrub/apis/',
-          timeout: 5000,
-        });
-        console.log("lolol");
-        const payload = new FormData();
-        payload.append("subcategory_id", this.props.route.params.SubcategoryData)
-        console.log(this.props)
-        await instance
-          .post('listCocktails/', payload)
-          .then(response => {
-            this.setState({ sublistingDictionary : response.data });
+    // async handleRequest() {
+    //     const instance = axios.create({
+    //       baseURL: 'https://jadookijhappi.com/pubgrub/apis/',
+    //       timeout: 5000,
+    //     });
+    //     console.log("lolol");
+    //     const payload = new FormData();
+    //     payload.append("subcategory_id", this.props.route.params.SubcategoryData)
+    //     console.log(this.props)
+    //     await instance
+    //       .post('listCocktails/', payload)
+    //       .then(response => {
+    //         this.setState({ sublistingDictionary : response.data });
             
-            //console.log(this.state.sublistingDictionary);
-          })
-          .catch(error => {
-            console.log(error);
-            if (error.response) {
-              console.log("error data" + error.response.data);
-              console.log("error status" + error.response.status);
-              console.log("error header" + error.response.headers);
-            } else if (error.request) {
-                console.log("error request" + error.request);
-              this.refs.toast.show('Network Error');
-            } else {
-                console.log('Error', error.message);
-            }
-            console.log(error.config);
-          });
-      }
+    //         //console.log(this.state.sublistingDictionary);
+    //       })
+    //       .catch(error => {
+    //         console.log(error);
+    //         if (error.response) {
+    //           console.log("error data" + error.response.data);
+    //           console.log("error status" + error.response.status);
+    //           console.log("error header" + error.response.headers);
+    //         } else if (error.request) {
+    //             console.log("error request" + error.request);
+    //           this.refs.toast.show('Network Error');
+    //         } else {
+    //             console.log('Error', error.message);
+    //         }
+    //         console.log(error.config);
+    //       });
+    //   }
 
     renderListingsCards = (data) => {
         let isFav = data.item.fav;

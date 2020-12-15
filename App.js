@@ -9,6 +9,8 @@ import ExploreView from "./screens/explore"
 import FavouritesView from "./screens/favourites"
 import OnboardingView from './screens/onboarding'
 import LoginAuth from './screens/LoginAuth'
+import MyBarView from './screens/myBar'
+import NewListingsView from './screens/newlistings'
 
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -35,7 +37,7 @@ function HomeStackScreen() {
           } else if (route.name === 'Favourites') {
             iconName = 'star-sharp';
           } else if (route.name === 'More') {
-            iconName = 'search-sharp';
+            iconName = 'options-outline';
           }
           
 
@@ -83,9 +85,9 @@ const ListingsStack = createStackNavigator();
 function ListingsStackScreen() {
   return (
     <ListingsStack.Navigator>
-      <ListingsStack.Screen name="Listings" component={ListingsView} options={{headerShown: false}}/>
+      <ListingsStack.Screen name="Listings" component={MyBarView} options={{headerShown: false}}/>
       <ListingsStack.Screen name="Recipe" component={RecipeView}/>
-      <ListingsStack.Screen name="SubListing" component={SubListingsView} options={{headerShown: false}}/>
+      <ListingsStack.Screen name="NewListing" component={NewListingsView} options={{headerShown: false, unmountOnBlur: true}}/>
     </ListingsStack.Navigator>
   );
 }
@@ -98,6 +100,7 @@ export default function App() {
       <HomeStack.Screen name="Onboarding" component={OnboardingView} options={{headerShown: false}} />
       <HomeStack.Screen name="Home" component={HomeStackScreen} options={{headerShown: false}} />
       <HomeStack.Screen name="Recipe" component={RecipeView} options={{headerShown: false}}/>
+      <HomeStack.Screen name="NewListing" component={NewListingsView} options={{headerShown: false, unmountOnBlur: true}}/>
       <HomeStack.Screen name="SubListing" component={SubListingsView} options={{headerShown: false}}/>
     </HomeStack.Navigator>
     </NavigationContainer>
