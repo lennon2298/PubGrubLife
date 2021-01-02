@@ -23,6 +23,7 @@ import SplashScreen from 'react-native-splash-screen'
 import axios from 'axios';
 import AsyncStorage from '@react-native-community/async-storage';
 import Toast, {DURATION} from 'react-native-easy-toast'
+import DeviceInfo from 'react-native-device-info';
 
 export default class Home extends Component {
     constructor(props) {
@@ -41,12 +42,19 @@ export default class Home extends Component {
         }
         this.arrayholder = [];
         this.testBool = false;
+        this.device_id = -1;
     }     
 
     async componentDidMount() {
         LogBox.ignoreLogs(['Animated: `useNativeDriver`']);
         LogBox.ignoreLogs(['Animated.event now requires a second argument for options'])
-        setTimeout(() => SplashScreen.hide(), 1000);
+        setTimeout(() => SplashScreen.hide(), 0);
+        let uniqueId = DeviceInfo.getUniqueId();
+        console.log(uniqueId);
+        // this.handleDeviceId(uniqueId);
+        const device_id = await AsyncStorage.getItem('device_id');
+        console.log(device_id);
+        this.device_id = JSON.parse(device_id);
         this.handleRequest();
     }
 
@@ -56,7 +64,7 @@ export default class Home extends Component {
           timeout: 5000,
         });
         console.log("lolol");
-        var keywords = "/search/keyword:" + this.state.search
+        var keywords = "/search/keyword:" + this.state.search + "/" + this.device_id + "/"
         
         console.log(keywords);
             await instance
@@ -158,6 +166,37 @@ export default class Home extends Component {
           });
       }
 
+      async handleDeviceId(data) {
+        AsyncStorage.setItem('device_token', data);
+        const instance = axios.create({
+          baseURL: 'https://jadookijhappi.com/pubgrub/apis/',
+          timeout: 5000,
+        });
+        const payload = new FormData();
+        payload.append("device_token", data)
+        await instance
+          .post('userCreate', payload)
+          .then(response => {
+            this.setState({ device_id : response.data.new_user });
+            console.log(response.data);
+            AsyncStorage.setItem('device_id', JSON.stringify(this.state.device_id));
+          })
+          .catch(error => {
+            console.log(error);
+            if (error.response) {
+              console.log("error data" + error.response.data);
+              console.log("error status" + error.response.status);
+              console.log("error header" + error.response.headers);
+            } else if (error.request) {
+                console.log("error request" + error.request);
+              this.refs.toast.show('Network Error');
+            } else {
+                console.log('Error', error.message);
+            }
+            console.log(error.config);
+          });
+      }
+
     renderListingsView(data) {
         this.setState({search: ""});
         if(this.state.listingsDictionary.length > 0) {
@@ -182,7 +221,7 @@ export default class Home extends Component {
     renderFeaturedCards = (data) => {
         return (
             <View style={{ paddingHorizontal: 6, paddingBottom: 4 }} >
-                <Pressable onPress={() => this.renderRecipeView(data.item.Cocktail.id)}>
+                <Pressable android_ripple={{ color: 'grey', borderless: false }} onPress={() => this.renderRecipeView(data.item.Cocktail.id)}>
                     <Card style={{ marginVertical: hp("3%"), marginHorizontal: wp("2%"), borderRadius: 25 }}>
                         <Image source={{ uri: data.item.Cocktail.image }}
                             style={{
@@ -204,12 +243,12 @@ export default class Home extends Component {
             <SafeAreaView style={{alignItems: "center", width: wp('30%'), marginVertical: '4%'}}>
             {
                 this.testBool ? <View style={{ backgroundColor:'#f68e56', borderRadius: 150}} >
-                <Pressable onPress={() => { this.renderSublistingsView(data.item.Subcategory.id) }}>
+                <Pressable android_ripple={{ color: 'grey', borderless: false }} onPress={() => { this.renderSublistingsView(data.item.Subcategory.id) }}>
                     <Image source={{ uri: data.item.Subcategory.image }} style={{borderColor:"red", width: wp('12%'), resizeMode:"center", height: wp("12%")}} />
                 </Pressable>
             </View> : 
             <View style={{ backgroundColor:'#a3d39c', borderRadius: 150}} >
-            <Pressable onPress={() => { this.renderSublistingsView(data.item.Subcategory.id) }}>
+            <Pressable android_ripple={{ color: 'grey', borderless: false }} onPress={() => { this.renderSublistingsView(data.item.Subcategory.id) }}>
                 <Image source={{ uri: data.item.Subcategory.image }} style={{borderColor:"red", width: wp('12%'), resizeMode:"center", height: wp("12%")}} />
             </Pressable>
         </View>
@@ -266,8 +305,8 @@ export default class Home extends Component {
                                     </Text>
                                 </View>
                                 <View style={{height:hp('12%'), justifyContent: 'flex-end'}}>
-                        <Icon name="chevron-down" color="#ffffff" size={25} style={{alignSelf: "center", marginBottom: hp('3%')}}></Icon>
-                        </View>
+                                    <Icon name="chevron-down" color="#ffffff" size={25} style={{alignSelf: "center", marginBottom: hp('3%')}}></Icon>
+                                </View>
                             </ImageBackground>
                         </Card>
                     </Pressable>
@@ -366,6 +405,6 @@ const styles = StyleSheet.create({
     content: {
         width: "90%",
         alignSelf: "center",
-        color: '#b7afaf'
+        color: '#b7570e'
     }
 });

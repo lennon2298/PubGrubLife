@@ -22,6 +22,7 @@ export default class SubListingsView extends Component {
         super(props);
         this.state = {
             sublistingDictionary: [],
+            listingsDictionary: [],
             reloadKey: 0,
             blogData: false,
             addsData: false,
@@ -33,29 +34,111 @@ export default class SubListingsView extends Component {
         }
         this.favItems = [];
         this.arrayholder = [];
+        this.device_id = -1;
     }
 
-    componentDidMount() {
+    async componentDidMount() {
+        const device_id = await AsyncStorage.getItem('device_id');
+        console.log(device_id);
+        this.device_id = JSON.parse(device_id);
         this._bootstrapAsync();
         this.onLoad();
+        this.handleRequest();
+        this.willFocusSubscription = this.props.navigation.addListener(
+            'focus',
+            async () => {
+                const device_id = await AsyncStorage.getItem('device_id');
+                console.log(device_id);
+                this.device_id = JSON.parse(device_id);
+                this._bootstrapAsync();
+                this.onLoad();
+                this.handleRequest();
+            }
+          );
     }
 
     _bootstrapAsync = async () => {
         const favToken = await AsyncStorage.getItem('favourites');
         this.favItems = JSON.parse(favToken);
-        console.log(this.favItems);
         var arr = this.favItems;
         this.setState({fav : true});
-        var clean = arr.filter((arr, index, self) =>
-        index === self.findIndex((t) => (t.id === arr.id && t.name === arr.name)))
-        this.favItems = clean;
-        console.log(this.favItems)
         this.setState({fav : true});
       };
 
     onLoad = () => {
         this.props.navigation.addListener('focus', () => this._bootstrapAsync())
     }
+
+    async handleRequest() {
+        const instance = axios.create({
+          baseURL: 'https://jadookijhappi.com/pubgrub/apis/',
+          timeout: 5000,
+        });
+        console.log("lolol");
+        await instance
+          .get('favorites/' + this.device_id + "/")
+          .then(response => {
+            this.setState({ favDictionary : response.data });
+            
+            //console.log(this.state.sublistingDictionary);
+          })
+          .catch(error => {
+            console.log(error);
+            if (error.response) {
+              console.log("error data" + error.response.data);
+              console.log("error status" + error.response.status);
+              console.log("error header" + error.response.headers);
+            } else if (error.request) {
+                console.log("error request" + error.request);
+              this.refs.toast.show('Network Error');
+            } else {
+                console.log('Error', error.message);
+            }
+            console.log(error.config);
+          });
+      }
+
+    async handleSearch() {
+        const instance = axios.create({
+          baseURL: 'https://jadookijhappi.com/pubgrub/apis/',
+          timeout: 5000,
+        });
+        console.log("lolol");
+        var keywords = "/search/keyword:" + this.state.search + "/" + this.device_id + "/"
+        
+        console.log(keywords);
+            await instance
+          .get(keywords)
+          .then(response => {
+            this.setState({ listingsDictionary : response.data });
+            console.log(this.state.listingsDictionary);
+            this.renderListingsView(this.state.listingsDictionary);
+          })
+          .catch(error => {
+            console.log(error);
+            if (error.response) {
+              console.log("error data" + error.response.data);
+              console.log("error status" + error.response.status);
+              console.log("error header" + error.response.headers);
+            } else if (error.request) {
+                console.log("error request" + error.request);
+              this.refs.toast.show('Network Error');
+            } else {
+                console.log('Error', error.message);
+            }
+            console.log(error.config);
+          });
+        }
+
+        renderListingsView(data) {
+            this.setState({search: ""});
+            if(this.state.listingsDictionary.length > 0) {
+                this.props.navigation.navigate('NewListing', { NewListingData : data })
+            }
+            else {
+                this.refs.toast.show("No Results Found.", 3000);
+            }
+        }
 
     SearchFilterFunction(text) {
         const newData = this.arrayholder.filter(function (item) {
@@ -67,73 +150,109 @@ export default class SubListingsView extends Component {
             dataSource: newData, search: text,
         });
     }
-
     renderListingsCards = (data) => {
-        let isFav = data.item.fav;
+        data.item.fav = Boolean(Number(data.item.Cocktail.is_favorite))
         return (
-            <Pressable onPress={() => { this.renderRecipeView(data.item.id) }}>
+            <Pressable android_ripple={{ color: 'grey', borderless: false }} onPress={() => { this.renderRecipeView(data.item.Cocktail.id) }}>
                 <Card style={{ width: wp('95%'), alignSelf: "center", alignContent: "center" }}>
-                    { /*console.log(data)*/ }
+                    { console.log(data) }
                     <CardItem>
                         {/* <Thumbnail round large source={{ uri: data.item.image }} /> */}
-                        <Image source={{ uri: data.item.image }} style={{borderRadius:20, width: wp('18%'), height: wp('23%')}} /> 
+                        <Image source={{ uri: data.item.Cocktail.image }} style={{borderRadius:20, width: wp('18%'), height: wp('23%')}} /> 
                         <View style={{ marginLeft: "5%", width: wp('57%') }}>
                             <Text style={{ fontWeight: "700", fontSize: 22, textTransform: "capitalize" }}>
                                 
-                                {data.item.name}
+                                {data.item.Cocktail.name}
                             </Text>
                             <Text>
-                                sub-text
+                            {data.item.Cocktail.subcategory}
                             </Text>
                             <Text style={{ marginTop: 15, color: '#e8b037' }}>
-                                {data.item.strength}
+                                {data.item.Cocktail.strength}
               </Text>
                         </View>
-                        {/* <Pressable android_disableSound onPress={() => { data.item.fav = !data.item.fav; this.setState({ fav: !this.state.fav }); this.handleFavs(data.item.Cocktail); }}>
+                        <Pressable android_disableSound onPress={() => { data.item.fav = !data.item.fav; this.setState({ fav: !this.state.fav }); data.item.Cocktail.is_favorite = String(Number(data.item.fav)); this.handleFavs(data.item.Cocktail, data.item.fav); }}>
                             <View style={{ marginHorizontal: null, width: wp('7%') }}>
                                 {
-                                    data.item.fav ? <Icon name="heart-outline" color="rgba(0, 0, 0, 1)" size={24}/> :
-                                    <Icon name="heart" color="rgba(0, 0, 0, 1)" size={24}/>
+                                    data.item.fav ? <Icon name="heart" color="#F67F21" size={24}/> :
+                                    <Icon name="heart-outline" color="#F67F21" size={24}/>
                                 }
                             </View>
-                        </Pressable> */}
+                        </Pressable>
                     </CardItem>
                 </Card>
             </Pressable>
         )
     }
 
-    handleFavs(data) {
-        if(this.favItems == null) {
-            this.favItems = data;
+    async handleFavs(data, isFav) {
+        //https://jadookijhappi.com/pubgrub/apis/markFavorite/{favorite}/{user_id}/{cocktail_id}
+        const instance = axios.create({
+            baseURL: 'https://jadookijhappi.com/pubgrub/apis/',
+            timeout: 5000,
+        });
+        var newFav = 0;
+        if(isFav){
+            newFav = 1
         }
-        else {
-            this.favItems.push(data);
-        }
-        console.log(this.favItems);
-        this.setState({fav : true});
-        AsyncStorage.setItem('favourites', JSON.stringify(this.favItems));
+        var favPost = "markFavorite/" + newFav + "/" + this.device_id + "/" + data.id + "/"
+        console.log(favPost);
+        const payload = new FormData();
+        payload.append(favPost)
+        await instance
+            .get(favPost)
+            .then(response => {
+                console.log(response);
+            })
+            .catch(error => {
+            console.log(error);
+            if (error.response) {
+                console.log("error data" + error.response.data);
+                console.log("error status" + error.response.status);
+                console.log("error header" + error.response.headers);
+            } else if (error.request) {
+                console.log("error request" + error.request);
+                this.refs.toast.show('Network Error');
+            } else {
+                console.log('Error', error.message);
+            }
+            console.log(error.config);
+            });
+        this.handleRequest();
     }
 
     renderRecipeView(data) {
         this.props.navigation.navigate('Recipe', { cocktail_id: data })
     }
 
+    renderEmprty = () => {
+        return (
+            <View style={{justifyContent: 'center', alignItems: 'center', flex:1, flexGrow:1}}>
+                <Text style={{color:"#b7afaf"}}>
+                    Your Favorited Drinks Will Appear Here
+                </Text>
+            </View>
+        );
+    }
+
     render() {
         return (
             <SafeAreaView style={{backgroundColor:'white', flex: 1}}>
                 <SearchBar round lightTheme
-                    searchIcon style={{ width: 0.5 }}
+                    searchIcon style={{ width: 0.5 }} onSubmitEditing={() => this.handleSearch()}
                     onChangeText={text => this.SearchFilterFunction(text)} onClear={text => this.SearchFilterFunction('')} placeholder="Search..." value={this.state.search}
                 />
+                <View style={{flex:1, flexGrow:1}}>
                 <FlatList
                     showsVerticalScrollIndicator={true}
-                    data={this.favItems}
+                    data={this.state.favDictionary}
                     extraData={this.state}
                     keyExtractor={(article, id) => id.toString()}
                     renderItem={data => this.renderListingsCards(data)}
-                    style={{ marginBottom: hp('10%') }}
+                    ListEmptyComponent={() => this.renderEmprty()}
+                    contentContainerStyle={{ flexGrow: 1 }} 
                 />
+                </View>
             </SafeAreaView>
         );
     }

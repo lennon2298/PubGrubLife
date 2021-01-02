@@ -89,14 +89,17 @@ export default class ExploreView extends Component {
         return (
             <View style={{ paddingRight: 6, paddingBottom: 4 }} >
                 {/* {console.log(data.item.Cocktail.name)} */}
-                <Pressable delayLongPress={250} onPress={() => this.renderRecipeView(data.item.Cocktail.id)} onLongPress={() => this.renderToast(name)}>
+                <Pressable android_ripple={{ color: 'grey', borderless: false }} delayLongPress={250} onPress={() => this.renderRecipeView(data.item.Cocktail.id)} onLongPress={() => this.renderToast(name)}>
                     <Card style={{ marginVertical: hp("3%"),  borderRadius: 10 }}>
                         <Image source={{ uri: data.item.Cocktail.image }}
                             style={{
                                 resizeMode: "cover",
-                                height: wp('36%'), width: wp('25%'), borderRadius: 15
+                                height: wp('32%'), width: wp('25%'), borderRadius: 10
                             }} />
                     </Card>
+                    <Text style={styles.content} numberOfLines={1}>
+                        {data.item.Cocktail.name}
+                    </Text>
                 </Pressable>
             </View>
         )
@@ -142,6 +145,8 @@ const styles = StyleSheet.create({
     },
     content: {
         width: "90%",
-        alignSelf: "center"
+        alignSelf: "center",
+        color: '#b7570e',
+        width: wp('25%')
     }
 });

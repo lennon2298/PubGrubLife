@@ -11,28 +11,27 @@ import {
 } from 'react-native';
 
 import { Card, CardItem, Thumbnail } from 'native-base';
-
 import { SearchBar } from 'react-native-elements'
-
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
-
-import Icon from 'react-native-vector-icons/MaterialIcons'
-
+import Icon from 'react-native-vector-icons/Ionicons';
 import axios from 'axios';
+import AsyncStorage from '@react-native-community/async-storage';
 
-export default class ListingsView extends Component {
+export default class ReviewListingsView extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            listingDictionary: [],
+            ReviewDictionary: [],
             reloadKey: 0,
             blogData: false,
             addsData: false,
             search: "",
             alcVisible: false,
             nalcVisible: false,
-            fav: false
+            fav: false,
+            
         }
+        this.favItems = [];
         this.arrayholder = [];
 
         const heart = "../res/doFav.png"
@@ -40,6 +39,25 @@ export default class ListingsView extends Component {
 
     componentDidMount() {
         this.handleRequest();
+        this._bootstrapAsync();
+    }
+
+    _bootstrapAsync = async () => {
+        const favToken = await AsyncStorage.getItem('favourites');
+        console.log(JSON.parse(favToken));
+        if(favToken != null)
+            this.favItems = JSON.parse(favToken);
+      };
+
+    SearchFilterFunction(text) {
+        const newData = this.arrayholder.filter(function (item) {
+            const itemData = item.title ? item.title.toUpperCase() :
+                ''.toUpperCase();
+            const textData = text.toUpperCase(); return itemData.indexOf(textData) > -1;
+        });
+        this.setState({
+            dataSource: newData, search: text,
+        });
     }
 
     async handleRequest() {
@@ -48,14 +66,12 @@ export default class ListingsView extends Component {
           timeout: 5000,
         });
         console.log("lolol");
-        const payload = new FormData();
-        payload.append("category_id", "1")
         await instance
-          .post('subcategories/', payload)
+          .post('listReviews/')
           .then(response => {
-            this.setState({ listingDictionary : response.data });
+            this.setState({ ReviewDictionary : response.data });
             
-            console.log(this.state.listingDictionary);
+            //console.log(this.state.sublistingDictionary);
           })
           .catch(error => {
             console.log(error);
@@ -76,51 +92,37 @@ export default class ListingsView extends Component {
     renderListingsCards = (data) => {
         let isFav = data.item.fav;
         return (
-            <Pressable android_ripple={{ color: 'grey', borderless: false }} onPress={() => { this.renderRecipeView(data.item.Subcategory.id) }}>
+            <Pressable android_ripple={{ color: 'grey', borderless: false }} onPress={() => { this.renderReviewView(data.item.Review.id) }}>
                 <Card style={{ width: wp('95%'), alignSelf: "center", alignContent: "center" }}>
-                    {console.log(data.item.Subcategory.name)}
+                    { /*console.log(data)*/ }
                     <CardItem>
-                        {/* <Thumbnail round large source={{ uri: data.item.Subcategory.image }} /> */}
-                        <Image source={require('../res/rum.jpg')} style={{borderRadius:20, width: wp('18%'), height: wp('23%')}} /> 
+                        {/* <Thumbnail round large source={{ uri: data.item.Cocktail.image }} /> */}
+                        <Image source={{ uri: data.item.Review.image }} style={{borderRadius:20, width: wp('18%'), height: wp('23%')}} /> 
                         <View style={{ marginLeft: "5%", width: wp('57%') }}>
-                            <Text style={{ fontWeight: "700", fontSize: 22, textTransform: "capitalize" }}>
-                                {console.log(data.item.Subcategory.id)}
-                                {data.item.Subcategory.name}
+                            <Text style={{ fontWeight: "700", fontSize: 19, textTransform: "capitalize" }}>
+                                
+                                {data.item.Review.whisky_name}
                             </Text>
-                            <Text>
-                            {data.item.Subcategory.subdesc}
-                            {/*change the object name to match sub description*/}
-              </Text>
-                            <Text style={{ marginTop: 15, color: '#e8b037' }}>
-                                light
-                                {/*Add in the strength if we recieve it from API*/}
-              </Text>
                         </View>
-                        
                     </CardItem>
                 </Card>
             </Pressable>
         )
     }
 
-    renderRecipeView(data) {
-        this.props.navigation.navigate('SubListing', { SubcategoryData: data })
+    renderReviewView(data) {
+        this.props.navigation.navigate('Review', { review_id: data })
     }
 
     render() {
         return (
             <SafeAreaView style={{backgroundColor:'white'}}>
-                <SearchBar round lightTheme
-                    searchIcon style={{ width: 0.5 }}
-                    onChangeText={text => this.SearchFilterFunction(text)} onClear={text => this.SearchFilterFunction('')} placeholder="Search..." value={this.state.search}
-                />
                 <FlatList
                     showsVerticalScrollIndicator={true}
-                    data={this.state.listingDictionary}
+                    data={this.state.ReviewDictionary}
                     extraData={this.state}
                     keyExtractor={(article, id) => id.toString()}
                     renderItem={data => this.renderListingsCards(data)}
-                    style={{ marginBottom: hp('10%') }}
                 />
             </SafeAreaView>
         );

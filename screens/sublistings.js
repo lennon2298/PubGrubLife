@@ -33,18 +33,25 @@ export default class SubListingsView extends Component {
         }
         this.favItems = [];
         this.arrayholder = [];
+        this.device_id = -1;
 
         const heart = "../res/doFav.png"
     }
 
-    componentDidMount() {
+    async componentDidMount() {
+        const device_id = await AsyncStorage.getItem('device_id');
+        console.log(device_id);
+        this.device_id = JSON.parse(device_id);
         this.handleRequest();
-        this._bootstrapAsync();
     }
 
     _bootstrapAsync = async () => {
+        const device_id = await AsyncStorage.getItem('device_id');
+        console.log(device_id);
+        this.device_id = JSON.parse(device_id);
+        console.log(this.device_id)
         const favToken = await AsyncStorage.getItem('favourites');
-        console.log(JSON.parse(favToken));
+        // console.log(JSON.parse(favToken));
         if(favToken != null)
             this.favItems = JSON.parse(favToken);
       };
@@ -70,11 +77,11 @@ export default class SubListingsView extends Component {
         payload.append("subcategory_id", this.props.route.params.SubcategoryData)
         console.log(this.props)
         await instance
-          .post('listCocktails/', payload)
+          .post('listCocktails/' + this.device_id + "/", payload)
           .then(response => {
             this.setState({ sublistingDictionary : response.data });
             
-            //console.log(this.state.sublistingDictionary);
+            console.log(this.state.sublistingDictionary);
           })
           .catch(error => {
             console.log(error);
@@ -93,9 +100,9 @@ export default class SubListingsView extends Component {
       }
 
     renderListingsCards = (data) => {
-        let isFav = data.item.fav;
+        data.item.fav = Boolean(Number(data.item.Cocktail.is_favorite))
         return (
-            <Pressable onPress={() => { this.renderRecipeView(data.item.Cocktail.id) }}>
+            <Pressable android_ripple={{ color: 'grey', borderless: false }} onPress={() => { this.renderRecipeView(data.item.Cocktail.id) }}>
                 <Card style={{ width: wp('95%'), alignSelf: "center", alignContent: "center" }}>
                     { /*console.log(data)*/ }
                     <CardItem>
@@ -107,13 +114,13 @@ export default class SubListingsView extends Component {
                                 {data.item.Cocktail.name}
                             </Text>
                             <Text>
-                                sub-text
+                            {data.item.Cocktail.subcategory}
               </Text>
                             <Text style={{ marginTop: 15, color: '#e8b037' }}>
                                 {data.item.Cocktail.strength}
               </Text>
                         </View>
-                        <Pressable android_disableSound onPress={() => { data.item.fav = !data.item.fav; this.setState({ fav: !this.state.fav }); this.handleFavs(data.item.Cocktail); }}>
+                        <Pressable android_disableSound onPress={() => { data.item.fav = !data.item.fav; this.setState({ fav: !this.state.fav }); data.item.Cocktail.is_favorite = String(Number(data.item.fav)); this.handleFavs(data.item.Cocktail, data.item.fav); }}>
                             <View style={{ marginHorizontal: null, width: wp('7%') }}>
                                 {
                                     data.item.fav ? <Icon name="heart" color="#F67F21" size={24}/> :
@@ -127,10 +134,39 @@ export default class SubListingsView extends Component {
         )
     }
 
-    handleFavs(data) {
-        this.favItems.push(data);
-        console.log(this.favItems);
-        AsyncStorage.setItem('favourites', JSON.stringify(this.favItems));
+    async handleFavs(data, isFav) {
+        //https://jadookijhappi.com/pubgrub/apis/markFavorite/{favorite}/{user_id}/{cocktail_id}
+        const instance = axios.create({
+            baseURL: 'https://jadookijhappi.com/pubgrub/apis/',
+            timeout: 5000,
+        });
+        var newFav = 0;
+        if(isFav){
+            newFav = 1
+        }
+        var favPost = "markFavorite/" + newFav + "/" + this.device_id + "/" + data.id + "/"
+        console.log(favPost);
+        const payload = new FormData();
+        payload.append(favPost)
+        await instance
+            .get(favPost)
+            .then(response => {
+                console.log(response);
+            })
+            .catch(error => {
+            console.log(error);
+            if (error.response) {
+                console.log("error data" + error.response.data);
+                console.log("error status" + error.response.status);
+                console.log("error header" + error.response.headers);
+            } else if (error.request) {
+                console.log("error request" + error.request);
+                this.refs.toast.show('Network Error');
+            } else {
+                console.log('Error', error.message);
+            }
+            console.log(error.config);
+            });
     }
 
     renderRecipeView(data) {

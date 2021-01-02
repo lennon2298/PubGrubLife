@@ -7,6 +7,7 @@ import axios from 'axios';
 import SplashScreen from 'react-native-splash-screen';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {widthPercentageToDP as wp, heightPercentageToDP as hp} from 'react-native-responsive-screen';
+import DeviceInfo from 'react-native-device-info';
 
 export default class OnboardingView extends Component {
   constructor(props) {
@@ -18,9 +19,43 @@ export default class OnboardingView extends Component {
   }
 
   componentDidMount() {
+    let uniqueId = DeviceInfo.getUniqueId();
+    console.log(uniqueId);
+    this.handleDeviceId(uniqueId);
     this.createAlert();
     this.handleRequest();
 }
+
+  async handleDeviceId(data) {
+    AsyncStorage.setItem('device_token', data);
+    const instance = axios.create({
+      baseURL: 'https://jadookijhappi.com/pubgrub/apis/',
+      timeout: 5000,
+    });
+    const payload = new FormData();
+    payload.append("device_token", data)
+    await instance
+      .post('userCreate', payload)
+      .then(response => {
+        this.setState({ device_id : response.data.user_id });
+        console.log(this.state.device_id);
+        AsyncStorage.setItem('device_id', JSON.stringify(this.state.device_id));
+      })
+      .catch(error => {
+        console.log(error);
+        if (error.response) {
+          console.log("error data" + error.response.data);
+          console.log("error status" + error.response.status);
+          console.log("error header" + error.response.headers);
+        } else if (error.request) {
+            console.log("error request" + error.request);
+          this.refs.toast.show('Network Error');
+        } else {
+            console.log('Error', error.message);
+        }
+        console.log(error.config);
+      });
+  }
 
   async handleRequest() {
     const instance = axios.create({

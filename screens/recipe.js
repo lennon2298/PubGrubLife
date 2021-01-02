@@ -29,19 +29,18 @@ export default class RecipeView extends Component {
         }
         this.arrayholder = [];
         this.favItems = [];
+        this.device_id = -1;
     }
 
-    componentDidMount() {
-
+    async componentDidMount() {
+        const device_id = await AsyncStorage.getItem('device_id');
+        console.log(device_id);
+        this.device_id = JSON.parse(device_id);
         this.setState({ recipeId: this.props.route.params.cocktail_id });
         this.handleRequest();
     }
 
     async handleRequest() {
-        const favToken = await AsyncStorage.getItem('favourites');
-        console.log(JSON.parse(favToken));
-        if(favToken != null)
-            this.favItems = JSON.parse(favToken);
         const instance = axios.create({
             baseURL: 'https://jadookijhappi.com/pubgrub/apis/',
             timeout: 5000,
@@ -50,10 +49,10 @@ export default class RecipeView extends Component {
         const payload = new FormData();
         payload.append("cocktail_id", this.props.route.params.cocktail_id)
         await instance
-            .post('details/', payload)
+            .post('details/' + this.device_id + "/", payload)
             .then(response => {
                 this.setState({ RecipeData: response.data });
-                // console.log(response.data);
+                console.log(response.data);
                 this.setState({ recipeRecieved: true })
             })
             .catch(error => {
@@ -83,14 +82,44 @@ export default class RecipeView extends Component {
         )
     }
 
-    handleFavs(data) {
-        this.favItems.push(data);
-        console.log(this.favItems);
-        AsyncStorage.setItem('favourites', JSON.stringify(this.favItems));
+    async handleFavs(data, isFav) {
+        //https://jadookijhappi.com/pubgrub/apis/markFavorite/{favorite}/{user_id}/{cocktail_id}
+        const instance = axios.create({
+            baseURL: 'https://jadookijhappi.com/pubgrub/apis/',
+            timeout: 5000,
+        });
+        var newFav = 0;
+        if(isFav){
+            newFav = 1
+        }
+        var favPost = "markFavorite/" + newFav + "/" + this.device_id + "/" + data.id + "/"
+        console.log(favPost);
+        const payload = new FormData();
+        payload.append(favPost)
+        await instance
+            .get(favPost)
+            .then(response => {
+                console.log(response);
+            })
+            .catch(error => {
+            console.log(error);
+            if (error.response) {
+                console.log("error data" + error.response.data);
+                console.log("error status" + error.response.status);
+                console.log("error header" + error.response.headers);
+            } else if (error.request) {
+                console.log("error request" + error.request);
+                this.refs.toast.show('Network Error');
+            } else {
+                console.log('Error', error.message);
+            }
+            console.log(error.config);
+            });
     }
 
     renderPage = (newData) => {
         if (this.state.recipeRecieved) {
+            newData.fav = Boolean(Number(newData.Cocktail.is_favorite))
             return (
                 <SafeAreaView style={{flex:1, backgroundColor: '#FFFFFF'}} >
                     {/* {console.log(newData)} */}
@@ -103,12 +132,9 @@ export default class RecipeView extends Component {
 
                             </Text>
                             <View style={{flexDirection: 'row', marginBottom: hp('1%')}}>
-                            <Pressable onPress={() => {  }} style={{marginRight: 5}}>
-                                <Icon name="share-social-sharp" color="#F67F21" size={28}/>
-                            </Pressable>
-                            <Pressable onPress={() => { this.setState({fav : true}); this.handleFavs(newData.Cocktail); }}>
+                            <Pressable onPress={() => { newData.fav = !newData.fav; this.setState({ fav: !this.state.fav }); newData.Cocktail.is_favorite = String(Number(newData.fav)); this.handleFavs(newData.Cocktail, newData.fav); }}>
                                 {
-                                    this.state.fav ? <Icon name="heart" color="#F67F21" size={28}/> :
+                                    newData.fav ? <Icon name="heart" color="#F67F21" size={28}/> :
                                     <Icon name="heart-outline" color="#F67F21" size={28}/>
                                 }
                             </Pressable>
@@ -125,7 +151,7 @@ export default class RecipeView extends Component {
                             <View style={{ marginVertical: '3%' }}>
                                 <View style={{ flexDirection: 'row' }}>
                                     <View style={{ width: '55%' }}>
-                                        <Text style={styles.info}>
+                                        <Text style={styles.subInfo}>
                                             Taste Profile
                                         </Text>
                                     </View>
@@ -135,7 +161,7 @@ export default class RecipeView extends Component {
                                 </View>
                                 <View style={{ flexDirection: 'row' }}>
                                     <View style={{ width: '55%' }}>
-                                        <Text style={styles.info}>
+                                        <Text style={styles.subInfo}>
                                             Strength
                                         </Text>
                                     </View>
@@ -145,7 +171,7 @@ export default class RecipeView extends Component {
                                 </View>
                                 <View style={{ flexDirection: 'row' }}>
                                     <View style={{ width: '55%' }}>
-                                        <Text style={styles.info}>
+                                        <Text style={styles.subInfo}>
                                             Preparation Method
                                         </Text>
                                     </View>
@@ -155,7 +181,7 @@ export default class RecipeView extends Component {
                                 </View>
                                 <View style={{ flexDirection: 'row' }}>
                                     <View style={{ width: '55%' }}>
-                                        <Text style={styles.info}>
+                                        <Text style={styles.subInfo}>
                                             Glass Type
                                         </Text>
                                     </View>
@@ -237,6 +263,11 @@ const styles = StyleSheet.create({
     },
     info: {
         color: "grey",
+        flexWrap: 'wrap',
+        flexShrink: 1,
+    },
+    subInfo: {
+        color: "#F67F21",
         flexWrap: 'wrap',
         flexShrink: 1,
     },

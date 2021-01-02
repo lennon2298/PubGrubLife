@@ -14,6 +14,8 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import TagInput from 'react-native-tags-input';
 import axios from 'axios';
 import Toast, {DURATION} from 'react-native-easy-toast'
+import AsyncStorage from '@react-native-community/async-storage'
+import Triangle from 'react-native-triangle';
 
 const mainColor = '#3ca897';
 export default class MyBar extends Component {
@@ -29,10 +31,13 @@ export default class MyBar extends Component {
             tagsText: '#fff',
         }
         this.arrayholder = [];
+        this.device_id = -1;
     }
 
-    componentDidMount() {
-
+    async componentDidMount() {
+        const device_id = await AsyncStorage.getItem('device_id');
+        console.log(device_id);
+        this.device_id = JSON.parse(device_id);
     }
 
 
@@ -77,11 +82,13 @@ export default class MyBar extends Component {
             } 
         }
         console.log(keywords);
-            await instance
+        keywords += this.device_id + "/"
+        await instance
           .get(keywords)
           .then(response => {
             this.setState({ listingsDictionary : response.data });
             console.log(this.state.listingsDictionary);
+            console.log(response)
             this.renderRecipeView(this.state.listingsDictionary);
           })
           .catch(error => {
@@ -103,7 +110,7 @@ export default class MyBar extends Component {
     render() {
         return (
             <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
-                <View style={{ alignItems: 'center' }}>
+                <View style={{ alignItems: 'center'}}>
                     <TagInput
                         updateState={this.updateTagState}
                         tags={this.state.tags}
@@ -112,7 +119,7 @@ export default class MyBar extends Component {
                         leftElement={<Icon name={'pricetags-outline'} size={18}  />}
                         leftElementContainerStyle={{ justifyContent: 'center' }}
                         containerStyle={{ width: wp('100%'), alignItems: 'center', justifyContent: 'center' }}
-                        inputContainerStyle={[styles.textInput, { backgroundColor: '#aeb1b5' }]}
+                        inputContainerStyle={[styles.textInput, { backgroundColor: '#bfbfbf' }]}
                         onFocus={() => this.setState({ tagsColor: '#fff', tagsText: mainColor })}
                         onBlur={() => this.setState({ tagsColor: mainColor, tagsText: '#fff' })}
                         autoCorrect={false}
@@ -120,9 +127,22 @@ export default class MyBar extends Component {
                         tagTextStyle={{color: '#ffffff', fontSize: 24, marginRight: wp('3%'), marginVertical: hp('1%')}}
                         keysForTag={', '} />
                 </View>
+                <View style={{ flex: 1, alignItems: 'center'}}>
+                    {
+                        Boolean(this.state.tags.tagsArray.length) ? <View></View> : 
+                        <View>
+                            <Triangle width={30} height={50} color={'#f7941d'} direction={'down-left'} style={{marginLeft: wp('8%'), marginBottom: -1}}/>
+                            <View style={{width: wp('90%'), borderRadius: 15, alignContent: 'center', padding: 5, backgroundColor: '#f7941d'}}>
+                            <Text style={{alignSelf: "stretch", fontSize: 20, textAlign:'center', color: 'white', marginVertical: hp('1%')}}>
+                                Why should only professionals have all the boozy fun? Type the ingredients you have at home and we will give you recipes you can create.
+                            </Text>
+                        </View>
+                            </View>
+                    }
+                </View>
                 <View style={{ flex: 1, alignItems: 'flex-end', flexDirection: 'row', justifyContent: 'center', marginBottom: hp('3%') }}>
-                <Pressable onPress={() => this.handleRequest()} style={{borderRadius: 6, backgroundColor: '#f7941d', alignItems: 'center'}}> 
-                    <Text style={{color: 'white', fontSize: 25, paddingHorizontal: 8, paddingVertical: 2}}>
+                <Pressable android_ripple={{ color: 'grey', borderless: false }} onPress={() => this.handleRequest()} style={{borderRadius: 6, backgroundColor: '#f7941d', alignItems: 'center'}}> 
+                    <Text style={{color: 'white', fontSize: 23, paddingHorizontal: 8, paddingVertical: 2}}>
                         Search
                     </Text>
                 </Pressable>
@@ -161,7 +181,7 @@ const styles = StyleSheet.create({
         backgroundColor: mainColor,
     },
     textInput: {
-        height: hp('8%'),
+        height: hp('7%'),
         justifyContent: 'center',
         alignItems: 'center',
         borderColor: 'white',
